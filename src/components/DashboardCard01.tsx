@@ -1,13 +1,13 @@
 // @ts-nocheck 
-
+import WorkInProgress from './WorkInProgress';
 import React, { useState, useEffect } from 'react';
-import { Radio, Card, Row, Col, Typography } from 'antd';
+import { Radio, Card, Row, Col, Typography, Button } from 'antd';
 import axios from 'axios';
 import ChartCardByRevenue from './Analytics';
 import ChartCardByQuantity from './Fintech';
-
+import AnnouncementComponent from './announcements'; // 导入新的公告组件
+import { Link } from 'react-router-dom';
 const { Title, Text } = Typography;
-
 const IOPrice = () => {
   const [price, setPrice] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -53,28 +53,62 @@ const InfoCard = ({ title, content }) => (
   </Card>
 );
 
+
 const ChartSelector = () => {
   const [selectedChart, setSelectedChart] = useState('revenue');
+  const [showWorkInProgress, setShowWorkInProgress] = useState(false);
+
+  if (showWorkInProgress) {
+    return (
+      <div className="flex flex-col col-span-full sm:col-span-12 bg-white dark:bg-gray-800 shadow-lg rounded-xl p-6">
+        <Button
+          onClick={() => setShowWorkInProgress(false)}
+          style={{ marginBottom: 16 }}
+        >
+          Back to Dashboard
+        </Button>
+        <WorkInProgress />
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col col-span-full sm:col-span-12 bg-white dark:bg-gray-800 shadow-lg rounded-xl p-6">
       <Card title="Rio的AI工作室-IO.Net">
         <Row gutter={[16, 16]}>
           <Col span={12}>
-            <InfoCard title="当前认证设备数" content="321614" />
+            <InfoCard title="当前认证设备数" content="321652" />
           </Col>
           <Col span={12}>
-            <InfoCard title="IO区块奖励发放数" content="6,921,592.989 IO" />
+            <InfoCard title="IO区块奖励发放数" content="7,127,152.903 IO" />
           </Col>
         </Row>
         <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
           <Col span={12}>
-            <InfoCard title="全网用户收益" content="$1,103,947" />
+            <InfoCard title="全网用户收益" content="$1,226,232.518" />
           </Col>
           <Col span={12}>
             <IOPrice />
           </Col>
         </Row>
+         <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
+          <Col span={24}>
+            <Card title="DePIN 项目教程分享">
+              <Button type="link" onClick={() => setShowWorkInProgress(true)}>
+                查看 DePIN 项目教程
+              </Button>
+            </Card>
+          </Col>
+        </Row>
+        {/* 新增公告组件 */}
+        <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
+          <Col span={24}>
+            <Card title="公告">
+              <AnnouncementComponent />
+            </Card>
+          </Col>
+        </Row>
+
         <Row style={{ marginTop: 16 }}>
           <Col span={24}>
             <Card>
