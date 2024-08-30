@@ -1,4 +1,5 @@
 // WorkInProgress.js
+// @ts-nocheck 
 import React from 'react';
 import { Card, Typography } from 'antd';
 
