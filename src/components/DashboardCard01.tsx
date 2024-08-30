@@ -1,4 +1,5 @@
-// @ts-nocheck 
+// @ts-nocheck
+import ROICalculator from './ROICalculator';
 import WorkInProgress from './WorkInProgress';
 import React, { useState, useEffect } from 'react';
 import { Radio, Card, Row, Col, Typography, Button } from 'antd';
@@ -57,6 +58,7 @@ const InfoCard = ({ title, content }) => (
 const ChartSelector = () => {
   const [selectedChart, setSelectedChart] = useState('revenue');
   const [showWorkInProgress, setShowWorkInProgress] = useState(false);
+  const [showROICalculator, setShowROICalculator] = useState(false); // 新增状态
 
   if (showWorkInProgress) {
     return (
@@ -68,6 +70,20 @@ const ChartSelector = () => {
           Back to Dashboard
         </Button>
         <WorkInProgress />
+      </div>
+    );
+  }
+
+  if (showROICalculator) {
+    return (
+      <div className="flex flex-col col-span-full sm:col-span-12 bg-white dark:bg-gray-800 shadow-lg rounded-xl p-6">
+        <Button
+          onClick={() => setShowROICalculator(false)}
+          style={{ marginBottom: 16 }}
+        >
+          Back to Dashboard
+        </Button>
+        <ROICalculator />
       </div>
     );
   }
@@ -108,7 +124,16 @@ const ChartSelector = () => {
             </Card>
           </Col>
         </Row>
-
+        {/* 新增ROI计算器按钮 */}
+        <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
+          <Col span={24}>
+            <Card title="ROI 计算器">
+              <Button type="primary" onClick={() => setShowROICalculator(true)}>
+                打开 ROI 计算器
+              </Button>
+            </Card>
+          </Col>
+        </Row>
         <Row style={{ marginTop: 16 }}>
           <Col span={24}>
             <Card>
