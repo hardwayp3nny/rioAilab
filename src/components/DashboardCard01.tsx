@@ -94,15 +94,15 @@ const ChartSelector = () => {
       <Card title="Rio的AI工作室-IO.Net">
         <Row gutter={[16, 16]}>
           <Col span={12}>
-            <InfoCard title="当前认证设备数" content="321652" />
+            <InfoCard title="当前认证设备数" content="322,145" />
           </Col>
           <Col span={12}>
-            <InfoCard title="IO区块奖励发放数" content="7,127,152.903 IO" />
+            <InfoCard title="IO区块奖励发放数" content="7,564,647.266 IO" />
           </Col>
         </Row>
         <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
           <Col span={12}>
-            <InfoCard title="全网用户收益" content="$1,226,232.518" />
+            <InfoCard title="全网用户收益" content="$1,276,684.182" />
           </Col>
           <Col span={12}>
             <IOPrice />
