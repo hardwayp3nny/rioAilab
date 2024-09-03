@@ -1,13 +1,12 @@
-// @ts-nocheck 
+//@ts-nocheck
 import React, { useState, useEffect, useRef } from 'react';
 import { Line } from '@antv/g2plot';
 import { Radio, Select } from 'antd';
 
 const { Option, OptGroup } = Select;
 
-const GPUUsageChart = () => {
+const GPUUsageChart = ({ selectedProcessors, setSelectedProcessors }) => {
   const [data, setData] = useState([]);
-  const [selectedProcessors, setSelectedProcessors] = useState([]);
   const [chartData, setChartData] = useState([]);
   const [timeRange, setTimeRange] = useState('month');
   const chartRef = useRef(null);
@@ -18,7 +17,6 @@ const GPUUsageChart = () => {
       const response = await fetch('https://gpucount.2089426079.workers.dev/');
       const result = await response.json();
       setData(result.data);
-      initSelectedProcessors(result.data);
       updateChart(result.data);
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -32,11 +30,15 @@ const GPUUsageChart = () => {
     return [];
   };
 
-  const initSelectedProcessors = (fetchedData) => {
-    if (fetchedData.length > 0) {
-      setSelectedProcessors([...appleProcessors, ...nvidiaProcessors()].slice(0, 3));
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+    if (data.length > 0) {
+      updateChart();
     }
-  };
+  }, [selectedProcessors, timeRange]);
 
   const updateChart = (fetchedData = data) => {
     const currentDate = new Date();
@@ -85,50 +87,39 @@ const GPUUsageChart = () => {
     }
   };
 
- const renderChart = (data) => {
-  const chart = new Line(document.getElementById('chartContainer'), {
-    data: data,
-    xField: 'date',
-    yField: 'count',
-    seriesField: 'processor',
-    xAxis: {
-      type: 'time',
-      tickCount: 5,
-    },
-    yAxis: {
-      title: {
-        text: 'GPU Count',
+  const renderChart = (data) => {
+    const chart = new Line(document.getElementById('chartContainer'), {
+      data: data,
+      xField: 'date',
+      yField: 'count',
+      seriesField: 'processor',
+      xAxis: {
+        type: 'time',
+        tickCount: 5,
       },
-    },
-    legend: {
-      position: 'top',
-    },
-    connectNulls: false,
-    animation: {
-      appear: {
-        animation: 'wave-in',
-        duration: 1500,
+      yAxis: {
+        title: {
+          text: 'GPU Count',
+        },
       },
-    },
-    theme: 'dark',
-    lineStyle: {
-      lineWidth: 3,
-    },
-
-  });
-  chart.render();
-  chartRef.current = chart;
-};
-
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  useEffect(() => {
-    if (data.length > 0) {
-      updateChart();
-    }
-  }, [selectedProcessors, timeRange]);
+      legend: {
+        position: 'top',
+      },
+      connectNulls: false,
+      animation: {
+        appear: {
+          animation: 'wave-in',
+          duration: 1500,
+        },
+      },
+      theme: 'dark',
+      lineStyle: {
+        lineWidth: 3,
+      },
+    });
+    chart.render();
+    chartRef.current = chart;
+  };
 
   return (
     <div className="container mx-auto p-4">

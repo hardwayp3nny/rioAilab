@@ -1,3 +1,4 @@
+//@ts-nocheck
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Radio, Select } from 'antd';
 import axios from 'axios';
@@ -5,47 +6,23 @@ import { Line } from '@antv/g2plot';
 
 const { Option, OptGroup } = Select;
 
-interface ProcessorData {
-  name: string;
-  reward: number;
-}
-
-interface DataItem {
-  datetime: string;
-  processors: ProcessorData[];
-  processor?: string; // Optional, in case you add it manually later
-  count?: number; // Optional, this will be calculated
-}
-
-interface MergedDataItem {
-  date: string;
-  processor: string;
-  count: number;
-}
-
-const ChartCard = () => {
-  const [data, setData] = useState<MergedDataItem[]>([]);
-  const [selectedProcessors, setSelectedProcessors] = useState<string[]>([]);
-  const [filteredData, setFilteredData] = useState<MergedDataItem[]>([]);
+const ChartCard = ({ selectedProcessors, setSelectedProcessors }) => {
+  const [data, setData] = useState([]);
+  const [filteredData, setFilteredData] = useState([]);
   const [timeRange, setTimeRange] = useState('7d');
-  const chartRef = useRef<Line | null>(null);
-  const dataCache = useRef(new Map<string, { data: MergedDataItem[], timestamp: number }>());
+  const chartRef = useRef(null);
+  const dataCache = useRef(new Map());
 
   const appleProcessors = ['m2 pro', 'm2 max', 'm3', 'm3 pro', 'm3 max', 'm2 ultra'];
 
-  const nvidiaProcessors = useCallback((): string[] => {
+  const nvidiaProcessors = useCallback(() => {
     if (data.length > 0) {
-      return Array.from(new Set(data.map(item => item.processor!.toLowerCase()))).filter(
+      return Array.from(new Set(data.map(item => item.processor.toLowerCase()))).filter(
         p => !appleProcessors.includes(p)
       );
     }
     return [];
   }, [data]);
-
-  const getTimeRangeInMs = (range: string): number => {
-    const days = parseInt(range);
-    return days * 24 * 60 * 60 * 1000;
-  };
 
   const fetchData = useCallback(async () => {
     const cacheKey = `${timeRange}_${Date.now()}`;
@@ -58,34 +35,32 @@ const ChartCard = () => {
     }
 
     const endTime = Date.now();
-    const startTime = endTime - getTimeRangeInMs(timeRange);
+    const startTime = endTime - (parseInt(timeRange) * 24 * 60 * 60 * 1000);
 
     try {
       const priceResponse = await axios.get('https://api.binance.com/api/v3/klines', {
-        params: { symbol: 'IOUSDT', interval: '1h', startTime: startTime, endTime: endTime },
+        params: { symbol: 'IOUSDT', interval: '1h', startTime, endTime },
       });
 
-      const priceData = new Map<string, number>(
-        priceResponse.data.map((item: any) => [
+      const priceData = new Map(
+        priceResponse.data.map(item => [
           new Date(item[0]).toISOString().slice(0, 19) + 'Z',
           parseFloat(item[4]),
         ])
       );
 
       const rewardResponse = await axios.get('https://apiweb.2089426079.workers.dev/');
-      const processorData: DataItem[] = rewardResponse.data.processorData;
+      const processorData = rewardResponse.data.processorData;
 
-      const mergedData: MergedDataItem[] = processorData
+      const mergedData = processorData
         .flatMap(item => {
           const datetime = new Date(item.datetime).toISOString().slice(0, 19) + 'Z';
           const price = priceData.get(datetime);
           if (price === undefined) return [];
 
-          const rewards = item.processors.reduce((acc: { [key: string]: number }, processor) => {
+          const rewards = item.processors.reduce((acc, processor) => {
             let processorName = processor.name.toLowerCase();
-            if (processorName.includes('a100')) {
-              processorName = 'a100';
-            }
+
             const rewardUSD = parseFloat((processor.reward * price).toFixed(2));
             acc[processorName] = (acc[processorName] || 0) + rewardUSD;
             return acc;
@@ -117,7 +92,7 @@ const ChartCard = () => {
     [selectedProcessors, data]
   );
 
-  const updateChart = (chartData: MergedDataItem[]) => {
+  const updateChart = (chartData) => {
     if (chartRef.current) {
       chartRef.current.update({
         data: chartData,
@@ -127,8 +102,8 @@ const ChartCard = () => {
     }
   };
 
-  const renderChart = (chartData: MergedDataItem[]) => {
-    const chart = new Line(document.getElementById('chartContainer') as HTMLElement, {
+  const renderChart = (chartData) => {
+    const chart = new Line(document.getElementById('chartContainer'), {
       data: chartData,
       xField: 'date',
       yField: 'count',
@@ -170,36 +145,6 @@ const ChartCard = () => {
       filterData();
     }
   }, [selectedProcessors, filterData, data]);
-
-  useEffect(() => {
-    const initSelectedProcessors = () => {
-      const allProcessors = [...appleProcessors, ...nvidiaProcessors()];
-      setSelectedProcessors(allProcessors.slice(0, 3));
-    };
-
-    if (data.length > 0) {
-      initSelectedProcessors();
-    }
-  }, [data, nvidiaProcessors]);
-
-  const cleanCache = useCallback(() => {
-    const now = Date.now();
-    for (const [key, value] of dataCache.current.entries()) {
-      if (now - value.timestamp > 30 * 60 * 1000) {
-        dataCache.current.delete(key);
-      }
-    }
-  }, []);
-
-  useEffect(() => {
-    const cacheCleaner = setInterval(cleanCache, 30 * 60 * 1000);
-    const dataFetcher = setInterval(fetchData, 5 * 60 * 1000);
-
-    return () => {
-      clearInterval(cacheCleaner);
-      clearInterval(dataFetcher);
-    };
-  }, [fetchData, cleanCache]);
 
   return (
     <div className="container mx-auto p-4">

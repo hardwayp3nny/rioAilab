@@ -9,6 +9,7 @@ import ChartCardByQuantity from './Fintech';
 import AnnouncementComponent from './announcements'; // 导入新的公告组件
 import { Link } from 'react-router-dom';
 const { Title, Text } = Typography;
+
 const IOPrice = () => {
   const [price, setPrice] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -54,11 +55,11 @@ const InfoCard = ({ title, content }) => (
   </Card>
 );
 
-
 const ChartSelector = () => {
   const [selectedChart, setSelectedChart] = useState('revenue');
+  const [selectedProcessors, setSelectedProcessors] = useState(['a100 40g', 'm2 pro', 'rtx 4090']); // 初始化处理器选项状态
   const [showWorkInProgress, setShowWorkInProgress] = useState(false);
-  const [showROICalculator, setShowROICalculator] = useState(false); // 新增状态
+  const [showROICalculator, setShowROICalculator] = useState(false);
 
   if (showWorkInProgress) {
     return (
@@ -107,13 +108,16 @@ const ChartSelector = () => {
             <IOPrice />
           </Col>
         </Row>
-         <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
+        <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
           <Col span={24}>
             <Card title="DePIN 项目教程分享">
-              <Button type="link" onClick={() => setShowWorkInProgress(true)}>
-                查看 DePIN 项目教程
-              </Button>
-            </Card>
+  <a href="https://depin-kappa.vercel.app/" target="_blank" rel="noopener noreferrer">
+    <Button type="link">
+      查看 DePIN 项目教程
+    </Button>
+  </a>
+</Card>
+
           </Col>
         </Row>
         {/* 新增公告组件 */}
@@ -146,7 +150,18 @@ const ChartSelector = () => {
                   <Radio.Button value="quantity">按数量</Radio.Button>
                 </Radio.Group>
               </div>
-              {selectedChart === 'revenue' ? <ChartCardByRevenue /> : <ChartCardByQuantity />}
+              {/* 根据selectedChart显示不同的图表，并传递selectedProcessors和setSelectedProcessors */}
+              {selectedChart === 'revenue' ? (
+                <ChartCardByRevenue
+                  selectedProcessors={selectedProcessors}
+                  setSelectedProcessors={setSelectedProcessors}
+                />
+              ) : (
+                <ChartCardByQuantity
+                  selectedProcessors={selectedProcessors}
+                  setSelectedProcessors={setSelectedProcessors}
+                />
+              )}
             </Card>
           </Col>
         </Row>
